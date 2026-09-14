@@ -3,11 +3,13 @@ package com.example.noticereader.feature.transaction.data.mapper
 import android.os.Build
 import androidx.annotation.RequiresApi
 import com.example.noticereader.feature.transaction.data.local.TransactionEntity
+import com.example.noticereader.feature.transaction.data.remote.TransactionDto
 import com.example.noticereader.feature.transaction.domain.BkashTime
 import com.example.noticereader.feature.transaction.domain.model.Transaction
 import com.example.noticereader.feature.transaction.domain.model.TransactionStatus
 import com.example.noticereader.feature.transaction.domain.parser.SmsParseResult
 import java.time.OffsetDateTime
+import java.time.format.DateTimeFormatter
 
 /**
  * Converts between the parser output, the domain [Transaction], and the Room [TransactionEntity].
@@ -62,6 +64,19 @@ fun Transaction.toEntity(): TransactionEntity {
         sortTimestamp = occurredAtMillis ?: receivedAtMillis,
     )
 }
+
+/**
+ * Turns a stored [Transaction] into the JSON body for Supabase (§7.1). Times are ISO 8601 with
+ * the Asia/Dhaka offset so the backend keeps the real payment time.
+ */
+fun Transaction.toDto(): TransactionDto = TransactionDto(
+    trxId = trxId,
+    amount = amount,
+    sender = sender,
+    rawMessage = rawMessage,
+    occurredAt = occurredAt?.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME),
+    receivedAt = receivedAt.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME),
+)
 
 fun TransactionEntity.toDomain(): Transaction = Transaction(
     trxId = trxId,

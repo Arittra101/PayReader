@@ -25,4 +25,13 @@ class TransactionRepositoryImpl(
     override suspend fun updateStatus(trxId: String, status: TransactionStatus) {
         dao.updateStatus(trxId, status.name)
     }
+
+    override suspend fun pendingUploads(): List<Transaction> =
+        dao.getNotUploaded().map { it.toDomain() }
+
+    override suspend fun markUploaded(trxId: String) = dao.markUploaded(trxId)
+
+    override suspend fun newestOccurredAtMillis(): Long? = dao.newestOccurredAtMillis()
+
+    override suspend fun lastSuccessfulUploadAtMillis(): Long? = dao.lastSuccessfulUploadMillis()
 }

@@ -21,14 +21,19 @@ object TransactionFormatting {
 
     fun toRow(transaction: Transaction): TransactionRowUi {
         val isParsingError = transaction.amount == null || transaction.sender == null
+        val effectiveTime = transaction.occurredAt ?: transaction.receivedAt
 
         return TransactionRowUi(
             trxId = transaction.trxId,
             amountText = transaction.amount?.let { formatAmount(it) },
             title = transaction.sender ?: firstLineOf(transaction.rawMessage),
-            timeText = formatTime(transaction.occurredAt ?: transaction.receivedAt),
+            timeText = formatTime(effectiveTime),
             status = transaction.status,
             isParsingError = isParsingError,
+            sortTimestampMillis = effectiveTime.toInstant().toEpochMilli(),
+            rawMessage = transaction.rawMessage,
+            senderText = transaction.sender,
+            receivedTimeText = formatTime(transaction.receivedAt),
         )
     }
 

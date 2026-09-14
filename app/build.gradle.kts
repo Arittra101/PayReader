@@ -8,6 +8,15 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
+// Supabase connection values (requirment.md §7.2) come from local.properties, which is
+// git-ignored, so keys never land in version control. Missing values fall back to empty
+// strings so the project still builds on a fresh checkout.
+val localProperties = Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) file.inputStream().use { load(it) }
+}
+fun localProperty(key: String): String = localProperties.getProperty(key).orEmpty()
+
 android {
     namespace = "com.example.noticereader"
     compileSdk = 36
@@ -20,6 +29,9 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField("String", "SUPABASE_URL", "\"${localProperty("SUPABASE_URL")}\"")
+        buildConfigField("String", "SUPABASE_ANON_KEY", "\"${localProperty("SUPABASE_ANON_KEY")}\"")
     }
 
     signingConfigs {
@@ -65,6 +77,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 

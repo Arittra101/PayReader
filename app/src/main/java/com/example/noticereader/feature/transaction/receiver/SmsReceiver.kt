@@ -11,6 +11,7 @@ import com.example.noticereader.feature.transaction.domain.parser.BkashSmsFilter
 import com.example.noticereader.feature.transaction.domain.parser.BkashSmsParser
 import com.example.noticereader.feature.transaction.domain.parser.SmsParseResult
 import com.example.noticereader.feature.transaction.domain.repository.TransactionRepository
+import com.example.noticereader.feature.transaction.work.WorkScheduler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -33,6 +34,7 @@ import org.koin.core.component.inject
 class SmsReceiver : BroadcastReceiver(), KoinComponent {
 
     private val repository: TransactionRepository by inject()
+    private val workScheduler: WorkScheduler by inject()
 
     // A tiny scope for the DB write. goAsync() keeps the receiver alive until it finishes.
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -65,7 +67,9 @@ class SmsReceiver : BroadcastReceiver(), KoinComponent {
                 if (!inserted) {
                     Log.i(TAG, "Duplicate SMS ignored (trxId already stored)")
                 }
-                // Phase 3: enqueue an expedited UploadWorker here.
+                // Local write is done — now hand off to the expedited upload worker (§4.3, §7.3).
+                // No network call happens in the receiver itself (§1.1 rule 1).
+                if (inserted) workScheduler.enqueueUpload()
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to store incoming SMS", e)
             } finally {

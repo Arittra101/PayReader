@@ -1,5 +1,7 @@
 package com.example.noticereader.feature.transaction.presentation.components
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -19,16 +22,27 @@ import com.example.noticereader.feature.transaction.domain.model.TransactionStat
 import com.example.noticereader.feature.transaction.presentation.model.TransactionRowUi
 
 /**
- * One transaction card (§10.5). The amount is the largest text — it is what the operator
- * scans for. A parsing-error row has no amount, so it shows the raw text instead and is
- * clearly marked by its PARSE ERROR pill.
+ * One transaction card (§10.5). The amount is the largest text — it is what the operator scans for.
+ * A parsing-error row has no amount, so it shows the raw text instead and is clearly marked by its
+ * PARSE ERROR pill.
+ *
+ * Tapping opens the detail sheet, long-pressing copies the TrxID, and a FAILED row shows a Retry
+ * button that re-enqueues the upload (§10.6).
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TransactionRow(
     row: TransactionRowUi,
+    onClick: () -> Unit,
+    onLongClick: () -> Unit,
+    onRetry: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Card(modifier = modifier.fillMaxWidth()) {
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .combinedClickable(onClick = onClick, onLongClick = onLongClick),
+    ) {
         Column(Modifier.padding(16.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -68,6 +82,16 @@ fun TransactionRow(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
+
+            // Only a real upload failure can be retried; a parse error needs a human, not a retry.
+            if (row.status == TransactionStatus.FAILED) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                ) {
+                    TextButton(onClick = onRetry) { Text("Retry") }
+                }
+            }
         }
     }
 }
@@ -83,6 +107,13 @@ private fun TransactionRowPreview() {
             timeText = "09 Sep 2026, 10:08 PM",
             status = TransactionStatus.SUCCESS,
             isParsingError = false,
+            sortTimestampMillis = 0L,
+            rawMessage = "You have received deposit ...",
+            senderText = "iBanking of City Bank",
+            receivedTimeText = "09 Sep 2026, 10:08 PM",
         ),
+        onClick = {},
+        onLongClick = {},
+        onRetry = {},
     )
 }

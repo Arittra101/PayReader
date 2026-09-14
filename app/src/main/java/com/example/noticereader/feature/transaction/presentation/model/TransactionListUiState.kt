@@ -10,6 +10,10 @@ data class TransactionListUiState(
     val failedRows: List<TransactionRowUi> = emptyList(),
     /** Relative time of the most recent SMS, e.g. "2 min ago". Null if none yet. */
     val lastSmsRelative: String? = null,
+    /** The shared date filter, reflected by the filter chips (§10.4). */
+    val dateFilter: DateFilter = DateFilter.Today,
+    /** Current sort order, reflected by the sort toggle (§10.4). */
+    val sortDirection: SortDirection = SortDirection.NEWEST_FIRST,
 ) {
     val successCount: Int get() = successRows.size
 

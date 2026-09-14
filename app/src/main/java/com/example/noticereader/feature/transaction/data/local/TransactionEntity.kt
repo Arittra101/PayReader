@@ -25,6 +25,12 @@ data class TransactionEntity(
     /** [com.example.noticereader.feature.transaction.domain.model.TransactionStatus] name. */
     val status: String,
     /**
+     * Whether the backend has accepted this row. Tracked separately from [status] so a
+     * PARSING_ERROR row can be uploaded (§8.2) while still showing in the Failed tab for a human
+     * (§10.3) — its status stays PARSING_ERROR even after a successful upload.
+     */
+    val uploaded: Boolean = false,
+    /**
      * The value the list is sorted by: `occurredAt` when known, otherwise `receivedAt`.
      * Sorting by this (newest first) satisfies §10.4 while still placing parsing-error rows
      * (which have no occurred time) sensibly.
